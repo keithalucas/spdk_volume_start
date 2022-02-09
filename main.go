@@ -22,15 +22,16 @@ func main() {
 
 	errChan := client.Init()
 
+	externalAddr := spdk.NewLonghornSetExternalAddress(os.Args[1])
+        client.SendMsg(externalAddr.GetMethod(), externalAddr)
+
 	aio := spdk.NewAioCreate("sata1", "/dev/sda", 4096)
 	client.SendMsg(aio.GetMethod(), aio)
 
 	lvs := spdk.NewBdevLvolCreateLvstore("sata1", "longhorn")
 	client.SendMsg(lvs.GetMethod(), lvs)
 
-	lrc := spdk.NewLonghornCreateReplica("demo", 4*1024*1024*1024, "longhorn", "", 0)
-	client.SendMsg(lrc.GetMethod(), lrc)
-	r1 := spdk.NewLonghornCreateReplica("test", 4<<30, "longhorn", "", 0)
+	r1 := spdk.NewLonghornCreateReplica("demo", 4*1024*1024*1024, "longhorn", "", 0)
 	client.SendCommand(r1)
 
 	replicas := []spdk.LonghornVolumeReplica{
@@ -49,7 +50,7 @@ func main() {
 	}
 
 	longhornCreate := spdk.NewLonghornVolumeCreateWithReplicas(
-		"test", replicas)
+		"demo", replicas)
 
 	client.SendCommand(longhornCreate)
 	<-errChan
